@@ -12,7 +12,8 @@ class CheckQuestionActivity {
 		$questionsList = $db->table('questions AS Q')->
 		where('active', '1')->
 		where('upTo', '<=', time())->
-		select(['id', 'upTo', 'question', 'chatId', '(SELECT noActiveUpdate FROM users WHERE chatId = Q.chatId) AS updateStatus'])->results();
+		select(['id', 'upTo', 'question', 'chatId',
+		        '(SELECT noActiveUpdate FROM users WHERE chatId = Q.chatId) AS updateStatus'])->results();
 
 		foreach ( $questionsList as $question ) {
 			$db->table('questions')->where('id', $question['id'])->update(['active' => '0']);

@@ -40,8 +40,7 @@ class SetDistrict extends BaseCommand {
 		} else {
 			$this->db->table('users')->where('chatId', $this->chatId)->update(['mode' => $this->mode]);
 			TelegramApi::sendMessageWithKeyboard($this->text['sendQDist'], [
-					[$this->text['fromList']],
-					[$this->text['allDist']],
+					[$this->text['fromList'], $this->text['allDist']],
 					[$this->text['cancel']]
 			]);
 		}

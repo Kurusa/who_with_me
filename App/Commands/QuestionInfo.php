@@ -12,7 +12,9 @@ class QuestionInfo extends BaseCommand {
 
 	function processCommand($par = false) {
 		$this->questionId = $par ? $par : $this->tgParser->getCallbackByKey('id');
-		$questionData = $this->db->table('questions')->select(['active'])->results();
+
+		$questionData = $this->db->table('questions')->
+		select(['active'])->results();
 
 		$this->agreesText();
 		$this->seenText();
@@ -40,21 +42,19 @@ class QuestionInfo extends BaseCommand {
 		$agrees = $this->db->table('agrees AS A')->where('questionId', $this->questionId)->
 		select(['COUNT(*) as count ', 'chatId', '(SELECT userName FROM users AS U WHERE U.chatId = A.chatId) AS userName'])->results();
 
-		if ($agrees[0]['count']) {
-			$this->msg .= $this->text['agrees']."\n";
-			foreach ( $agrees as $value ) {
-				$name = $value['userName'] ? $value['userName'] : $this->text['profile'];
-				$this->msg .= '<a href="tg://user?id='.$value['chatId'].'">'.$name.'</a>';
-			}
-		} else {
-			$this->msg .= $this->text['noAgrees']."\n";
+		$this->msg .= $this->text['agrees']."\n";
+		foreach ( $agrees as $value ) {
+			$name = $value['userName'] ? $value['userName'] : $this->text['profile'];
+			$this->msg .= '<a href="tg://user?id='.$value['chatId'].'">'.$name.'</a>';
 		}
 	}
 
 	private function seenText() {
-		/*$seen = $this->db->table('seen')->where('questionId', $this->questionId)->select(['COUNT(*) AS count'])->results();
+		$seen = $this->db->table('questionQueue')->
+		where('questionId', $this->questionId)->
+		select(['COUNT(*) AS count'])->results();
 
-		$this->msg .= "\n"."\n".$this->text['seenAmount'].$seen[0]['count']."\n";*/
+		$this->msg .= "\n"."\n".$this->text['seenAmount'].$seen[0]['count']."\n";
 	}
 
 	private function upTo($status) {

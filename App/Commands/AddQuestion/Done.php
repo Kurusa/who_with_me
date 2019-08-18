@@ -12,7 +12,6 @@ class Done extends BaseCommand {
 	function processCommand($par = false) {
 		$this->triggerCommand(MainMenu::class, $this->text['questionDone']);
 		$this->triggerCommand(ModerateQuestion::class);
-
 	}
 
 }
