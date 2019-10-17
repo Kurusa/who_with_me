@@ -1,28 +1,31 @@
 <?php
+$time_start = microtime(true);
+
 define('SITE_ROOT', $_SERVER['DOCUMENT_ROOT']);
 require_once(SITE_ROOT.'/vendor/autoload.php');
 
-class AddToQueue {
-
-	/**
-	 * @var \PHPtricks\Orm\Database
-	 */
-	private $db;
+class AddQuestionToQueue {
 
 	public function __construct() {
-		$this->db = \PHPtricks\Orm\Database::connect();
-		$questionList = $this->db->table('questions')->
+		$db = \PHPtricks\Orm\Database::connect();
+		$questionList = $db->table('questionList')->
 		where('moderated', '1')->
 		where('inQueue', '0')->
 		where('active', '1')->
-		limit(5)->
+		where('done', '1')->
+		limit(50)->
 		select()->results();
 
-		foreach ($questionList as $question) {
-			$this->db->query('INSERT INTO questionQueue(questionId, chatId)
-							  SELECT '.$question['id'].' as questionId, chatId FROM users '.$this->buildWhere($question));
+		if ($db->count()) {
+			$qIdList = [];
+			foreach ( $questionList as $question ) {
+				$db->query('INSERT INTO questionQueue(questionId, chatId)
+							  SELECT '.$question['id'].' as questionId, chatId FROM userList '.$this->buildWhere($question));
 
-			$this->db->table('questions')->where('id', $question['id'])->update(['inQueue' => '1']);
+				$qIdList[] = $question['id'];
+			}
+
+			$db->query('UPDATE questionList SET inQueue = 1 WHERE id IN('.implode($qIdList, ',').')');
 		}
 	}
 
@@ -46,10 +49,13 @@ class AddToQueue {
 		$where .= $where ? ' AND ' : ' WHERE ';
 		$where .= ' chatId <> '. $question['chatId'];
 		$where .= ' AND newUpdate = 1 ';
+		$where .= ' AND chatId > 0 ';
 
 		return $where;
 	}
 
 }
 
-new AddToQueue();
+new AddQuestionToQueue();
+
+error_log('AddQuestionToQueue '.(microtime(true) - $time_start));

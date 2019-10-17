@@ -8,7 +8,7 @@ class Cancel extends BaseCommand {
 		switch ($this->userData['mode']) {
 			case 'setDistrict':
 			case 'feedback':
-				$this->db->table('users')->where('chatId', $this->chatId)->update(['mode' => 'done']);
+				$this->db->table('userList')->where('chatId', $this->chatId)->update(['mode' => 'done']);
 				$this->triggerCommand(MainMenu::class);
 			break;
 			case 'setQSex':
@@ -16,12 +16,9 @@ class Cancel extends BaseCommand {
 			case 'setQDist':
 			case 'setQProfile':
 			case 'setQActivity':
-				$this->db->table('questions')->where('id', $this->userData['questionId'])->delete();
-				$this->db->table('users')->where('chatId', $this->chatId)->update(['mode' => 'done', 'questionId' => 0]);
-				$this->triggerCommand(MainMenu::class);
-			break;
 			case 'setQText':
-				$this->db->table('users')->where('chatId', $this->chatId)->update(['mode' => 'done']);
+				$this->db->query('DELETE FROM questionList WHERE id = '.$this->userData['questionId']);
+				$this->db->table('userList')->where('chatId', $this->chatId)->update(['mode' => 'done', 'questionId' => 0]);
 				$this->triggerCommand(MainMenu::class);
 			break;
 		}

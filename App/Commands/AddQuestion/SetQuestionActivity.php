@@ -3,7 +3,6 @@
 namespace App\Commands\AddQuestion;
 
 use App\Commands\BaseCommand;
-use App\TgHelpers\TelegramApi;
 
 class SetQuestionActivity extends BaseCommand {
 
@@ -12,21 +11,22 @@ class SetQuestionActivity extends BaseCommand {
 	function processCommand($par = false) {
 		if ($this->userData['mode'] == $this->mode) {
 			if ($this->tgParser::getCallbackByKey('a') !== 'changeDone') {
-				TelegramApi::updateMessageKeyboard($this->tgParser::getMsgId(), $this->text['howMuchActive'], $this->buildButtons($this->tgParser::getCallbackByKey('num')));
+				$this->tg->updateMessageKeyboard($this->tgParser::getMsgId(), $this->text['howMuchActive'], $this->buildButtons($this->tgParser::getCallbackByKey('num')));
 			} else {
 				$hours = $this->tgParser::getCallbackByKey('num');
 				if ($hours !== 0) {
 					$timeInFuture = time() + (60 * 60 * $hours);
-					$this->db->table('questions')->where('id', $this->userData['questionId'])->update(['upTo' => $timeInFuture]);
+					$this->db->table('questionList')->where('id', $this->userData['questionId'])->update(['upTo' => $timeInFuture]);
+					$this->tg->deleteMessage($this->tgParser::getMsgId());
 					$this->triggerCommand(Done::class);
 				} else {
-					TelegramApi::showAlert($this->tgParser::getCallbackId(), $this->text['moreThanHour']);
+					$this->tg->showAlert($this->tgParser::getCallbackId(), $this->text['moreThanHour']);
 				}
 			}
 		} else {
-			$this->db->table('users')->where('chatId', $this->chatId)->update(['mode' => $this->mode]);
-			TelegramApi::sendMessageWithKeyboard($this->text['useButtons'], [[$this->text['cancel']]]);
-			TelegramApi::sendMessageWithInlineKeyboard($this->text['howMuchActive'], $this->buildButtons(0));
+			$this->db->table('userList')->where('chatId', $this->chatId)->update(['mode' => $this->mode]);
+			$this->tg->sendMessageWithKeyboard($this->text['useButtons'], [[$this->text['cancel']]]);
+			$this->tg->sendMessageWithInlineKeyboard($this->text['howMuchActive'], $this->buildButtons(0));
 		}
 
 	}

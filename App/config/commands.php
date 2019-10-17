@@ -1,5 +1,6 @@
 <?php
 return [
 	'/start' => \App\Commands\Start::class,
-	'/test' => \App\Commands\AutoForecast::class
+	'/delete' => \App\Commands\DeleteMe::class,
+	'/invite' => \App\Commands\InviteMsg::class,
 ];

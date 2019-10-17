@@ -2,18 +2,16 @@
 
 namespace App\Commands;
 
-use App\TgHelpers\TelegramApi;
-
 class AnswerQuestion extends BaseCommand {
 
 	function processCommand($par = false) {
 		if ($this->tgParser::getCallbackByKey('a') == 'yes') {
 			$status = 'agreed';
 
-			$senderData = $this->db->table('questions AS q')->where('id', $this->tgParser::getCallbackByKey('qId'))->
-			select(['chatId', 'question', '(SELECT yesUpdate FROM users as U WHERE chatId = q.chatId) AS yesUpdate'])->results();
+			$senderData = $this->db->table('questionList AS q')->where('id', $this->tgParser::getCallbackByKey('qId'))->
+			select(['chatId', 'question', '(SELECT yesUpdate FROM userList as U WHERE chatId = q.chatId) AS yesUpdate'])->results();
 			if ($senderData[0]['yesUpdate']) {
-				TelegramApi::sendMessage('<a href="tg://user?id='.$this->chatId.'">'.$this->text['user'].'</a>'.$this->text['agreed']."\n".
+				$this->tg->sendMessage('<a href="tg://user?id='.$this->chatId.'">'.$this->text['user'].'</a>'.$this->text['agreed']."\n".
 					$senderData[0]['question'], $senderData[0]['chatId']);
 			}
 		} else {
@@ -22,9 +20,10 @@ class AnswerQuestion extends BaseCommand {
 
 		$this->db->table('questionQueue')->
 		where('questionId', $this->tgParser::getCallbackByKey('qId'))->
+		where('chatId', $this->chatId)->
 		update(['status' => $status]);
 
-		TelegramApi::deleteMessage($this->tgParser::getMsgId());
+		$this->tg->deleteMessage($this->tgParser::getMsgId());
 	}
 
 }

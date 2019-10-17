@@ -27,7 +27,10 @@ return [
 	'updates' => [
 		'yesUpdate'         => 'про відповідь "так" ',
 		'newUpdate'         => 'про нову пропозицію ',
-		'noActiveUpdate'    => 'про неактуальність твоєї пропозиції ',
+	],
+
+	'groupUpdates' => [
+		'yesUpdate' => 'про відповідь "так" ',
 	]
 
 ];

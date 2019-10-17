@@ -5,7 +5,11 @@ namespace App\Commands;
 class Unknown extends BaseCommand {
 
 	function processCommand($par = false) {
-		$this->triggerCommand(MainMenu::class, $this->text['unknownCommand']);
+		if ($this->userData['mode'] == 'done') {
+			$this->triggerCommand(MainMenu::class, $this->text['unknownCommand']);
+		} else {
+			$this->tg->sendMessage($this->text['unknownCommand']);
+		}
 	}
 
 }

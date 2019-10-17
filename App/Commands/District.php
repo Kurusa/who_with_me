@@ -2,7 +2,6 @@
 
 namespace App\Commands;
 
-use App\TgHelpers\TelegramApi;
 use App\TgHelpers\TelegramKeyboard;
 
 class District extends BaseCommand {
@@ -12,28 +11,36 @@ class District extends BaseCommand {
 
 	function processCommand($par = false) {
 		if ($this->tgParser::getCallbackByKey('a') == 'distDone') {
-			$this->db->table('users')->where('chatId', $this->chatId)->update(['mode' => 'done', 'district' => $this->tgParser::getCallbackByKey('id')]);
-			TelegramApi::deleteMessage($this->tgParser::getMsgId());
+			$this->triggerCommand(InviteMsg::class, true);
+
+			$this->db->table('userList')->where('chatId', $this->chatId)->update(['mode' => 'done', 'district' => $this->tgParser::getCallbackByKey('id')]);
+			$this->tg->deleteMessage($this->tgParser::getMsgId());
+
 			$districtName = $this->db->table('districtList')->where('id', $this->tgParser::getCallbackByKey('id'))->select(['district'])->results();
 			$this->triggerCommand(MainMenu::class, $this->text['uSelectedDist'].$districtName[0]['district']);
+
 			if ($this->userData['mode'] == $this->mode) {
-				$this->triggerCommand(MainMenu::class, $this->text['ready']);
+				$this->triggerCommand(MainMenu::class, $this->tgParser::isGroup() ? $this->text['readyGroup'] : $this->text['ready'] );
+				$this->triggerCommand(InviteMsg::class);
+				if (!$this->tgParser::isGroup()) {
+					$this->triggerCommand(SendNewQuestion::class, $this->text['ready']);
+				}
 			}
 			exit;
 		}
 
 		$mode = ($this->tgParser::getMessage() == $this->text['changeDistrict']) ? $this->setMode : $this->mode;
-		$this->db->table('users')->where('chatId', $this->chatId)->update(['mode' => $mode]);
+		$this->db->table('userList')->where('chatId', $this->chatId)->update(['mode' => $mode]);
 
 		if ($this->tgParser::getCallbackByKey('a') == 'nextDist' || $this->tgParser::getCallbackByKey('a') == 'prevDist') {
-			TelegramApi::updateMessageKeyboard($this->tgParser::getMsgId(), $this->text['list'], $this->buildKeyboard());
+			$this->tg->updateMessageKeyboard($this->tgParser::getMsgId(), $this->text['list'], $this->buildKeyboard());
 		} else {
 			if ($mode == $this->setMode) {
-				TelegramApi::sendMessageWithKeyboard($this->text['selectDistrict'], [[$this->text['cancel']]]);
+				$this->tg->sendMessageWithKeyboard($this->text['selectDistrict'], [[$this->text['cancel']]]);
 			} else {
-				TelegramApi::removeKeyboard($this->text['selectDistrict']);
+				$this->tg->removeKeyboard($this->text['selectDistrict']);
 			}
-			TelegramApi::sendMessageWithInlineKeyboard($this->text['list'], $this->buildKeyboard());
+			$this->tg->sendMessageWithInlineKeyboard($this->text['list'], $this->buildKeyboard());
 		}
 	}
 

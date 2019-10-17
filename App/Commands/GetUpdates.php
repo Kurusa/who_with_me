@@ -2,30 +2,28 @@
 
 namespace App\Commands;
 
-use App\TgHelpers\TelegramApi;
-
 class GetUpdates extends BaseCommand {
 
 	function processCommand($par = false) {
 		if ($this->tgParser::getCallbackByKey('a') == 'update') {
 			$key    = $this->tgParser::getCallbackByKey('key');
-			$value  = !($this->tgParser::getCallbackByKey('v'));
+			$value  = intval(!($this->tgParser::getCallbackByKey('v')));
 
-			$this->db->table('users')->
+			$this->db->table('userList')->
 			where('chatId', $this->chatId)->
 			update([$key => $value]);
 
-			TelegramApi::updateMessageKeyboard($this->tgParser::getMsgId(), $this->text['updatesType'], $this->buildButtons());
+			$this->tg->updateMessageKeyboard($this->tgParser::getMsgId(), $this->text['updatesType'], $this->buildButtons());
 		} else {
-			TelegramApi::sendMessageWithInlineKeyboard($this->text['updatesType'], $this->buildButtons());
+			$this->tg->sendMessageWithInlineKeyboard($this->text['updatesType'], $this->buildButtons());
 		}
 	}
 
 	private function buildButtons() {
-		$userUpdatesData = $this->db->table('users')->where('chatId', $this->chatId)->select(array_keys($this->config['updates']))->results();
+		$userUpdatesData = $this->db->table('userList')->where('chatId', $this->chatId)->select(array_keys($this->config['updates']))->results();
 
 		$buttons = [];
-		foreach ($this->config['updates'] as $key => $update) {
+		foreach ($this->tgParser::isGroup() ? $this->config['groupUpdates'] : $this->config['updates'] as $key => $update) {
 			$check = !($userUpdatesData[0][$key]) ? $this->text['delete'] : $this->text['check'];
 			$buttons[] = [[
 				'text' => $update . $check,
