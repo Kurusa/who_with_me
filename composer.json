@@ -1,0 +1,18 @@
+{
+    "name": "kurusa/new_who",
+    "authors": [
+        {
+            "name": "kurusa03",
+            "email": "kurusa03@gmail.com"
+        }
+    ],
+    "require": {
+        "phptricks/database_class": "^4.1",
+        "twig/twig": "^2.11"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "App/"
+        }
+    }
+}
